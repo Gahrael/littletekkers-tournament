@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LittleTekkers Tournament</title>
+<style>
+   body { 
+    font-family: Arial, sans-serif; 
+    text-align: center; 
+    margin: 20px; 
+    background-color: #0f2142; 
+    color: white;
+.form-W { color: blue; font-weight: bold; }  /* Win = green */
+.form-D { color: purple; font-weight: bold; }  /* Draw = orange */
+.form-L { color: #FF0000; font-weight: bold; }  /* Loss = red */
+  #pageHeader {
+    display: inline-block;
+    background-color: white;
+    color: Black;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+.matches-title {
+    display: inline-block;
+    background-color: white;  
+    color: black;             
+    padding: 10px 20px;        
+    border-radius: 10px;       
+    font-weight: bold;
+    font-style: italic;
+    font-size: 1.4em;
+    margin-bottom: 10px;
+}
+  /* Table styling */
+  table { 
+    border-collapse: collapse; 
+    width: 70%; 
+    margin: 0 auto;
+    border: 3px solid #000; 
+    font-weight: bold;
+    background-color: white; 
+    color: black; 
+  }
+  th, td { 
+    border: 2px solid #000; 
+    padding: 8px; 
+    text-align: center; 
+    font-weight: bold; 
+  }
+  th { 
+    background-color: #0D47A1; 
+    color: white; 
+  }
+  
+  /* Top 4 rows in blue */
+  .top-team { 
+    background-color: #009FF9; 
+    color: white; 
+    transition: 0.3s; 
+  }
+  input[type="number"], input[type="text"], input[type="password"], select { padding: 5px; }
+
+  .match-form { margin: 20px auto; display: none; }
+
+  /* Matches results box */
+  #matches {
+    width: 70%;
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 10px;
+    border: 3px solid #000;
+    background-color: #f9f9f9;
+    min-height: 50px;
+    text-align: center;
+  }
+  #matches p {
+    margin: 10px 0;        
+    padding: 5px;
+    border-radius: 10px;
+    font-weight: bold;  
+    font-size: 1.2em;  
+    color: white;
+  }
+
+  /* Match result colors */
+  .team1-win { background-color: blue; }  
+  .team2-win { background-color: red; }  
+  .draw { background-color: purple; } 
+</style>
+</head>
+<body>
+
+<h1 id="pageHeader">LittleTekkers - Battle of the Bravest 2026</h1>
+
+<table id="tournamentTable">
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Team</th>
+      <th>Played</th>
+      <th>Won</th>
+      <th>Draw</th>
+      <th>Lost</th>
+      <th>GF</th>
+      <th>GA</th>
+      <th>GD</th>
+      <th>Points</th>
+      <th>Form</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="match-form" id="matchForm">
+  <h3>Enter Match Score (Admin Only)</h3>
+  Admin Name: <input type="text" id="adminName"><br><br>
+  Password: <input type="password" id="adminPass"><br><br>
+  Team 1: 
+  <select id="team1Select"></select>
+  Score: <input type="number" id="score1" min="0">
+  vs
+  Team 2: 
+  <select id="team2Select"></select>
+  Score: <input type="number" id="score2" min="0">
+  <br><br>
+  <button onclick="submitScore()">Submit Score</button>
+</div>
+
+<h2><div class="matches-title">Matches Played</div></h2>
+<div id="matches"></div>
+
+<script>
+const adminCredentials = { name: 'Tekkers', pass: 'Bryan' };
+const teams = [
+  { name: "LittleTekkers Football Academy", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Northbank FC", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Third Lanark", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Next Generation", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Blantyre Football Academy", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Pirelli", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] },
+  { name: "Yett Farm", played:0, won:0, draw:0, lost:0, gf:0, ga:0, points:0, form: [] }
+];
+  
+const tbody = document.querySelector('#tournamentTable tbody');
+const team1Select = document.getElementById('team1Select');
+const team2Select = document.getElementById('team2Select');
+const matchesDiv = document.getElementById('matches');
+
+teams.forEach(team => {
+  const option1 = document.createElement('option'); option1.value = team.name; option1.text = team.name; team1Select.add(option1);
+  const option2 = document.createElement('option'); option2.value = team.name; option2.text = team.name; team2Select.add(option2);
+});
+
+function updateTable() {
+  teams.sort((a,b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga));
+  tbody.innerHTML = '';
+teams.forEach((team, index) => {
+    const tr = document.createElement('tr');
+    tr.className = index < 4 ? 'top-team' : '';
+
+    let formString = team.form.slice(-6)
+    .map(result => `<span class="form-${result}">${result}</span>`)
+    .join(' ');
+   
+  tr.innerHTML = `
+      <td>${index+1}</td>
+      <td>${team.name}</td>
+      <td>${team.played}</td>
+      <td>${team.won}</td>
+      <td>${team.draw}</td>
+      <td>${team.lost}</td>
+      <td>${team.gf}</td>
+      <td>${team.ga}</td>
+      <td>${team.gf - team.ga}</td>
+      <td>${team.points}</td>
+      <td>${formString}</td> <!-- Form column -->
+    `;
+    tbody.appendChild(tr);
+});
+}
+
+function submitScore() {
+  const adminName = document.getElementById('adminName').value;
+  const adminPass = document.getElementById('adminPass').value;
+  if(adminName !== adminCredentials.name || adminPass !== adminCredentials.pass){ alert("Invalid admin credentials!"); return; }
+
+  const t1 = team1Select.value;
+  const t2 = team2Select.value;
+  const s1 = parseInt(document.getElementById('score1').value);
+  const s2 = parseInt(document.getElementById('score2').value);
+  if(t1 === t2){ alert("Select different teams!"); return; }
+  if(isNaN(s1) || isNaN(s2)){ alert("Enter valid scores!"); return; }
+
+  const team1 = teams.find(t => t.name === t1);
+  const team2 = teams.find(t => t.name === t2);
+
+  team1.played++; team2.played++;
+  team1.gf += s1; team1.ga += s2;
+  team2.gf += s2; team2.ga += s1;
+
+  let resultClass = '';
+  if(s1 > s2){ team1.won++; team1.points += 3; team2.lost++; resultClass = 'team1-win'; }
+  else if(s1 < s2){ team2.won++; team2.points += 3; team1.lost++; resultClass = 'team2-win'; }
+  else { team1.draw++; team2.draw++; team1.points++; team2.points++; resultClass = 'draw'; }
+if(s1 > s2){ 
+    team1.form.push('W'); 
+    team2.form.push('L'); 
+} else if(s1 < s2){ 
+    team1.form.push('L'); 
+    team2.form.push('W'); 
+} else { 
+    team1.form.push('D'); 
+    team2.form.push('D'); 
+}
+  updateTable();
+
+  const matchEntry = document.createElement('p');
+  matchEntry.textContent = `${t1} ${s1} - ${s2} ${t2}`;
+  matchEntry.className = resultClass;
+  matchesDiv.appendChild(matchEntry);
+
+  document.getElementById('score1').value = '';
+  document.getElementById('score2').value = '';
+}
+
+document.getElementById('matchForm').style.display = 'block';
+updateTable();
+</script>
+</body>
+</html>
